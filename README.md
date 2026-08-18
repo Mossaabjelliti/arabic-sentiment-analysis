@@ -1,96 +1,141 @@
-# Arab Twitter Pulse
+# Arabic Social Media Sentiment Analysis 🇹🇳🤖
 
-Sentiment and topic analysis dashboard for Arabic social media content, built with a Tunisian market focus.
+> An NLP analytics dashboard for Arabic social-media content, combining transformer-based sentiment classification with topic extraction and interactive data exploration.
 
-The idea: take a raw corpus of Arabic tweets, run sentiment classification and topic extraction on it, and present the results in a way that's actually useful — not just "here's a chart." Each panel in the dashboard answers a specific question a comms or product team would actually ask.
+This project takes a corpus of Arabic social-media posts, processes the text, performs sentiment analysis, extracts recurring topics, and presents the results through an interactive Streamlit dashboard.
 
-**[Live Dashboard](#)** — coming once deployed to HuggingFace Spaces
+The focus is applied NLP: turning unstructured Arabic text into information that a product, communications, or research team could explore.
 
----
+## What the dashboard answers
 
-## What the dashboard shows
+1. **Overview** — What is the overall sentiment distribution and date range?
+2. **Sentiment over time** — How does sentiment change across the observed period?
+3. **Top topics** — Which themes appear most frequently?
+4. **Sentiment by topic** — Which topics are associated with positive or negative sentiment?
+5. **Data explorer** — Which posts match a keyword, sentiment, or date filter?
 
-Five panels, each with a purpose:
+## NLP pipeline
 
-1. **Overview** — total posts, date range, overall sentiment split. The 10-second summary.
-2. **Sentiment over time** — line chart by week. If there's a spike, I annotate it.
-3. **Top topics** — TF-IDF extracted themes, shown as a bar chart by volume.
-4. **Sentiment by topic** — cross-tab: for each topic, what's the sentiment breakdown? This one usually surfaces the interesting stuff.
-5. **Data explorer** — filterable table. Search by keyword, filter by sentiment or date.
+```text
+Arabic social-media posts
+          ↓
+Text cleaning / normalization
+          ↓
+Transformer-based sentiment model
+          ↓
+Sentiment predictions
+          ↓
+TF-IDF topic extraction
+          ↓
+Aggregation & analysis
+          ↓
+Interactive Streamlit dashboard
+```
 
----
+## Technical approach
 
-## Stack
+### Sentiment analysis
 
-- `pandas` / `numpy` — data wrangling
-- `transformers` (HuggingFace) — sentiment model ([CAMeL-Lab arabic BERT](https://huggingface.co/CAMeL-Lab/bert-base-arabic-camelbert-da-sentiment))
-- `scikit-learn` — TF-IDF for topic extraction
-- `plotly` — all charts
-- `streamlit` — dashboard
+The project uses the pretrained **CAMeL-Lab Arabic BERT / CamelBERT sentiment model** from Hugging Face rather than training a transformer from scratch.
 
-No custom model training. The CAMeL-Lab model is pre-trained on Arabic social media text — using it directly makes more sense than fine-tuning from scratch for this scope.
+This is a deliberate engineering choice: for a portfolio-scale applied NLP project, a domain-relevant pretrained model provides a strong baseline while keeping the pipeline practical and reproducible.
 
----
+### Topic extraction
+
+TF-IDF is used to identify representative terms and recurring themes in the corpus. The approach is lightweight and interpretable, making it useful for exploratory analysis.
+
+## Tech stack
+
+| Component | Technology |
+|---|---|
+| Language | Python |
+| Data processing | pandas, NumPy |
+| NLP | Hugging Face Transformers |
+| Sentiment model | CAMeL-Lab Arabic BERT / CamelBERT |
+| Topic extraction | scikit-learn TF-IDF |
+| Visualization | Plotly |
+| Dashboard | Streamlit |
 
 ## Dataset
 
-Currently using [ajgt_twitter_ar](https://huggingface.co/datasets/ajgt_twitter_ar) — 1800 Arabic tweets, binary labeled (positive / negative), perfectly balanced. Small but clean. Planning to layer in the [Tunisian dialect dataset](https://www.kaggle.com/datasets/mksaad/tunisian-sentiment-twitter-dataset) from Kaggle once the base pipeline is solid.
+The baseline uses the `ajgt_twitter_ar` Arabic Twitter dataset available through Hugging Face. The current dataset contains 1,800 binary-labeled Arabic tweets and is balanced between positive and negative examples.
 
-Data lives in `data/raw/` which is gitignored. See [docs/DATASET_GUIDE.md](docs/DATASET_GUIDE.md) for notes on other datasets considered.
-
----
+Raw data is not committed to the repository. A Tunisian-dialect dataset is planned as an additional evaluation source to make the analysis more representative of local Arabic usage.
 
 ## Project structure
 
-```
+```text
 ├── data/
-│   ├── raw/          # gitignored
-│   └── processed/    # cleaned output
-├── notebooks/        # one notebook per step
-├── src/              # reusable modules (cleaning, sentiment, topics, utils)
+│   ├── raw/             # gitignored source data
+│   └── processed/       # cleaned/processed outputs
+├── notebooks/           # EDA and analysis notebooks
+├── src/                 # reusable processing and NLP modules
 ├── dashboard/
-│   └── app.py        # streamlit entry point
-└── docs/
-    └── DATASET_GUIDE.md
+│   └── app.py           # Streamlit entry point
+├── docs/
+│   └── DATASET_GUIDE.md
+├── requirements.txt
+└── README.md
 ```
-
----
 
 ## Running locally
 
 ```bash
 git clone https://github.com/Mossaabjelliti/arabic-sentiment-analysis.git
 cd arabic-sentiment-analysis
-python -m venv venv && venv\Scripts\activate
+
+python -m venv venv
+.\venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
 Download the dataset:
+
 ```python
 from datasets import load_dataset
-ds = load_dataset('ajgt_twitter_ar')
-ds['train'].to_pandas().to_csv('data/raw/ajgt_twitter_ar.csv', index=False)
+
+ds = load_dataset("ajgt_twitter_ar")
+ds["train"].to_pandas().to_csv("data/raw/ajgt_twitter_ar.csv", index=False)
 ```
 
-Run notebooks in order (`notebooks/01_eda.ipynb` → ...), then:
+Run the dashboard:
+
 ```bash
 streamlit run dashboard/app.py
 ```
 
----
+## Evaluation
 
-## Status
+The project should be evaluated using standard classification metrics:
 
-Work in progress. EDA done, cleaning and sentiment pipeline next.
+- Accuracy
+- Precision
+- Recall
+- F1 score
+- Confusion matrix
 
-Key findings will go here once the analysis is complete.
+> Evaluation numbers should be added after the final preprocessing/model pipeline is frozen. This README intentionally avoids inventing benchmark results.
 
+## Limitations
 
-> Raw data is not committed to this repo. See `data/README.md` for download instructions.
+- The baseline dataset is relatively small.
+- Arabic social-media language contains dialects, slang, spelling variation, emojis, and code-switching.
+- A pretrained Arabic model may not fully represent Tunisian dialect usage.
+- TF-IDF topics are interpretable but do not capture semantic relationships as deeply as embedding-based topic models.
 
----
+## Roadmap
 
-## About
+- [ ] Finish the end-to-end preprocessing pipeline
+- [ ] Add reproducible evaluation and benchmark metrics
+- [ ] Evaluate Tunisian-dialect data
+- [ ] Add confusion-matrix and error-analysis views
+- [ ] Add model comparison
+- [ ] Deploy the Streamlit dashboard
 
-Built by [Your Name] as part of a data science portfolio targeting the Tunisian and MENA tech market.  
-Connect on [LinkedIn](your-linkedin-url)
+## Author
+
+**Mossaab Jelliti**
+
+Data science and software engineering portfolio project focused on Arabic NLP and practical analytics.
+
+- GitHub: [@Mossaabjelliti](https://github.com/Mossaabjelliti)
